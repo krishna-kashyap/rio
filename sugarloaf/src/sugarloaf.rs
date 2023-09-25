@@ -367,11 +367,15 @@ impl<'a> Sugarloaf<'a> {
         self.spans.push(("\n".to_string(), attr));
         let spans: Vec<(&str, text::Attrs<'a>)> =
             self.spans.iter().map(|v| (v.0.as_str(), v.1)).collect();
+
+        let start2 = std::time::Instant::now();
         self.editor.buffer_mut().set_rich_text(
             &mut self.font_system,
             spans,
             cosmic_text::Shaping::Advanced,
         );
+        let duration2 = start2.elapsed();
+        println!("Time elapsed in set_rich_text() is: {:?}", duration2);
 
         let duration = start.elapsed();
         println!("Time elapsed in stack() is: {:?}", duration);

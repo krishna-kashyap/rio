@@ -314,6 +314,12 @@ async fn main() {
                 _ => (),
             },
             Event::RedrawRequested { .. } => {
+                //time elapsed in stack() is: 160.5µs
+                //Time elapsed in stack() is: 77.25µs
+                //Time elapsed in stack() is: 3.271584ms
+                //Time elapsed in stack() is: 102.459µs
+                //Time elapsed in stack() is: 621.208µs
+
                 // Target: 108.335791ms
                 let start = std::time::Instant::now();
                 sugarloaf.stack(sugar);

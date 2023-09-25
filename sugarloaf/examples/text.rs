@@ -290,7 +290,6 @@ async fn main() {
         match event {
             Event::Resumed => {
                 sugarloaf.set_background_color(wgpu::Color::RED);
-                sugarloaf.calculate_bounds();
                 window.request_redraw();
             }
             Event::WindowEvent { event, .. } => match event {
@@ -304,25 +303,26 @@ async fn main() {
                     let new_inner_size = window.inner_size();
                     sugarloaf
                         .rescale(scale_factor_f32)
-                        .resize(new_inner_size.width, new_inner_size.height)
-                        .calculate_bounds();
+                        .resize(new_inner_size.width, new_inner_size.height);
                     window.request_redraw();
                 }
                 winit::event::WindowEvent::Resized(new_size) => {
                     sugarloaf
-                        .resize(new_size.width, new_size.height)
-                        .calculate_bounds();
+                        .resize(new_size.width, new_size.height);
                     window.request_redraw();
                 }
                 _ => (),
             },
             Event::RedrawRequested { .. } => {
+                let start = std::time::Instant::now();
                 sugarloaf.stack(sugar);
                 sugarloaf.stack(loaf);
                 sugarloaf.stack(special_2);
                 sugarloaf.stack(rio);
                 sugarloaf.stack(special);
                 sugarloaf.render();
+                let duration = start.elapsed();
+                println!("Time elapsed in render() is: {:?}", duration);
             }
             _ => {
                 *control_flow = winit::event_loop::ControlFlow::Wait;

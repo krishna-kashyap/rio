@@ -222,8 +222,14 @@ impl<'a> Sugarloaf<'a> {
     #[inline]
     pub fn stack(&mut self, stack: SugarStack) {
         // let mut x = 0.;
-        let attrs = text::Attrs::new();
-        let attr = attrs.family(cosmic_text::Family::Name("Fira Code"));
+        let attr = cosmic_text::Attrs {
+            color_opt: None,
+            family: cosmic_text::Family::Name("Fira Code"),
+            stretch: cosmic_text::Stretch::Normal,
+            style: Style::Normal,
+            weight: Weight::NORMAL,
+            metadata: 0,
+        };
 
         let mut repeated = RepeatedSugar::new(0);
         let size = stack.len();
@@ -514,9 +520,10 @@ impl<'a> Sugarloaf<'a> {
                 );
 
                 self.rects = vec![];
-                // self.text_brush.render(&self.atlas, &mut encoder, view);
+                self.text_brush.render(&self.atlas, &mut encoder, view);
                 self.spans = vec![];
 
+                self.ctx.staging_belt.finish();
                 self.ctx.queue.submit(Some(encoder.finish()));
                 frame.present();
                 self.atlas.trim();

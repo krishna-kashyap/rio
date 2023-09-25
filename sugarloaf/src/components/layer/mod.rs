@@ -542,6 +542,7 @@ impl LayerBrush {
             render_pass.set_vertex_buffer(0, self.vertices.slice(..));
 
             layer.render(render_pass);
+            drop(render_pass);
         }
     }
 

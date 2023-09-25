@@ -265,10 +265,6 @@ impl Renderable for RectBrush {
         instances: &[Rect],
         ctx: &mut Context,
     ) {
-        if instances.is_empty() {
-            return;
-        }
-
         let transform: [f32; 16] = orthographic_projection(dimensions.0, dimensions.1);
         // device.push_error_scope(wgpu::ErrorFilter::Validation);
         let scale = ctx.scale;
@@ -301,7 +297,7 @@ impl Renderable for RectBrush {
 
             let instance_bytes = bytemuck::cast_slice(&instances[i..end]);
 
-            // queue.write_buffer(&self.instances, 0, instance_bytes);
+            // ctx.queue.write_buffer(&self.instances, 0, instance_bytes);
             let mut instance_buffer = staging_belt.write_buffer(
                 encoder,
                 &self.instances,

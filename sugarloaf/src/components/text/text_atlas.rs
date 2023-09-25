@@ -1,3 +1,4 @@
+use crate::context::Context;
 use crate::components::text::{ContentType, CacheKey, FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus,
     Params, Resolution, SwashCache,
 };
@@ -39,7 +40,7 @@ impl InnerAtlas {
 
         // Create a texture to use for our atlas
         let texture = device.create_texture(&TextureDescriptor {
-            label: Some("glyphon atlas"),
+            label: Some("text atlas"),
             size: Extent3d {
                 width: size,
                 height: size,
@@ -272,8 +273,8 @@ pub struct TextAtlas {
 
 impl TextAtlas {
     /// Creates a new [`TextAtlas`].
-    pub fn new(device: &Device, queue: &Queue, format: TextureFormat) -> Self {
-        Self::with_color_mode(device, queue, format, ColorMode::Accurate)
+    pub fn new(ctx: &Context) -> Self {
+        Self::with_color_mode(&ctx.device, &ctx.queue, ctx.format, ColorMode::Accurate)
     }
 
     /// Creates a new [`TextAtlas`] with the given [`ColorMode`].
@@ -284,7 +285,7 @@ impl TextAtlas {
         color_mode: ColorMode,
     ) -> Self {
         let sampler = device.create_sampler(&SamplerDescriptor {
-            label: Some("glyphon sampler"),
+            label: Some("text sampler"),
             min_filter: FilterMode::Nearest,
             mag_filter: FilterMode::Nearest,
             mipmap_filter: FilterMode::Nearest,
@@ -295,7 +296,7 @@ impl TextAtlas {
 
         // Create a render pipeline to use for rendering later
         let shader = device.create_shader_module(ShaderModuleDescriptor {
-            label: Some("glyphon shader"),
+            label: Some("text shader"),
             source: ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
         });
 
@@ -375,7 +376,7 @@ impl TextAtlas {
                     count: None,
                 },
             ],
-            label: Some("glyphon bind group layout"),
+            label: Some("text bind group layout"),
         });
 
         let params = Params {
@@ -387,7 +388,7 @@ impl TextAtlas {
         };
 
         let params_buffer = device.create_buffer(&BufferDescriptor {
-            label: Some("glyphon params"),
+            label: Some("text params"),
             size: size_of::<Params>() as u64,
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
             mapped_at_creation: false,
@@ -425,7 +426,7 @@ impl TextAtlas {
                     resource: BindingResource::Sampler(&sampler),
                 },
             ],
-            label: Some("glyphon bind group"),
+            label: Some("text bind group"),
         }));
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -501,7 +502,7 @@ impl TextAtlas {
             .map(|(_, _, p)| Arc::clone(p))
             .unwrap_or_else(|| {
                 let pipeline = Arc::new(device.create_render_pipeline(&RenderPipelineDescriptor {
-                    label: Some("glyphon pipeline"),
+                    label: Some("text pipeline"),
                     layout: Some(&self.pipeline_layout),
                     vertex: VertexState {
                         module: &self.shader,
@@ -550,7 +551,7 @@ impl TextAtlas {
                     resource: BindingResource::Sampler(&self.sampler),
                 },
             ],
-            label: Some("glyphon bind group"),
+            label: Some("text bind group"),
         }));
     }
 }

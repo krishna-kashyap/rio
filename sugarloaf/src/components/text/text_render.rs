@@ -1,10 +1,11 @@
-use crate::components::text::{FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus, Params, PrepareError, RenderError,
+use crate::context::Context;
+use crate::components::text::{FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus, Params, PrepareError,
     Resolution, SwashCache, SwashContent, TextArea, TextAtlas,
 };
 use std::{iter, mem::size_of, slice, sync::Arc};
 use wgpu::{
-    Buffer, BufferDescriptor, BufferUsages, DepthStencilState, Device, Extent3d, ImageCopyTexture,
-    ImageDataLayout, IndexFormat, MultisampleState, Origin3d, Queue, RenderPass, RenderPipeline,
+    Buffer, BufferDescriptor, BufferUsages, Device, Extent3d, ImageCopyTexture,
+    ImageDataLayout, IndexFormat, Origin3d, Queue, RenderPipeline,
     TextureAspect, COPY_BUFFER_ALIGNMENT,
 };
 
@@ -23,13 +24,14 @@ impl TextRenderer {
     /// Creates a new `TextRenderer`.
     pub fn new(
         atlas: &mut TextAtlas,
-        device: &Device,
-        multisample: MultisampleState,
-        depth_stencil: Option<DepthStencilState>,
+        ctx: &Context,
+        // multisample: MultisampleState,
+        // depth_stencil: Option<DepthStencilState>,
     ) -> Self {
+        let device = &ctx.device;
         let vertex_buffer_size = next_copy_buffer_size(4096);
         let vertex_buffer = device.create_buffer(&BufferDescriptor {
-            label: Some("glyphon vertices"),
+            label: Some("text vertices"),
             size: vertex_buffer_size,
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
@@ -37,13 +39,13 @@ impl TextRenderer {
 
         let index_buffer_size = next_copy_buffer_size(4096);
         let index_buffer = device.create_buffer(&BufferDescriptor {
-            label: Some("glyphon indices"),
+            label: Some("text indices"),
             size: index_buffer_size,
             usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
-        let pipeline = atlas.get_or_create_pipeline(device, multisample, depth_stencil);
+        let pipeline = atlas.get_or_create_pipeline(&device, wgpu::MultisampleState::default(), None);
 
         Self {
             vertex_buffer,
@@ -320,7 +322,7 @@ impl TextRenderer {
 
             let (buffer, buffer_size) = create_oversized_buffer(
                 device,
-                Some("glyphon vertices"),
+                Some("text vertices"),
                 vertices_raw,
                 BufferUsages::VERTEX | BufferUsages::COPY_DST,
             );
@@ -344,7 +346,7 @@ impl TextRenderer {
 
             let (buffer, buffer_size) = create_oversized_buffer(
                 device,
-                Some("glyphon indices"),
+                Some("text indices"),
                 indices_raw,
                 BufferUsages::INDEX | BufferUsages::COPY_DST,
             );

@@ -37,15 +37,15 @@ pub trait Renderable: 'static + Sized {
 pub struct Sugarloaf<'a> {
     pub ctx: Context,
     pub layout: SugarloafLayout,
-    text_brush: text::TextRenderer,
+    // text_brush: text::TextRenderer,
     rect_brush: RectBrush,
     layer_brush: LayerBrush,
     rects: Vec<Rect>,
     fonts: SugarloafFonts,
     cache: cosmic_text::SwashCache,
-    atlas: text::TextAtlas,
+    // atlas: text::TextAtlas,
     spans: Vec<(String, text::Attrs<'a>)>,
-    editor: cosmic_text::Editor,
+    // editor: cosmic_text::Editor,
     font_system: cosmic_text::FontSystem
 }
 
@@ -77,17 +77,17 @@ impl<'a> Sugarloaf<'a> {
 
         let mut font_system = cosmic_text::FontSystem::new();
         let cache = cosmic_text::SwashCache::new();
-        let mut atlas = text::TextAtlas::new(&ctx.device, &ctx.queue, ctx.format);
-        let text_brush =
-            text::TextRenderer::new(&mut atlas, &ctx.device, wgpu::MultisampleState::default(), None);
-        let mut editor = cosmic_text::Editor::new(cosmic_text::Buffer::new_empty(
-            cosmic_text::Metrics::new(20.0, 20.0).scale(ctx.scale),
-        ));
+        // let mut atlas = text::TextAtlas::new(&ctx);
+        // let text_brush =
+        //     text::TextRenderer::new(&mut atlas, &ctx);
+        // let mut editor = cosmic_text::Editor::new(cosmic_text::Buffer::new_empty(
+        //     cosmic_text::Metrics::new(20.0, 20.0).scale(ctx.scale),
+        // ));
 
-        editor.borrow_with(&mut font_system);
+        // editor.borrow_with(&mut font_system);
 
-        editor.buffer_mut()
-            .set_size(&mut font_system, layout.width, layout.height);
+        // editor.buffer_mut()
+            // .set_size(&mut font_system, layout.width, layout.height);
 
         let rect_brush = RectBrush::init(&ctx);
         let layer_brush = LayerBrush::new(&ctx);
@@ -98,11 +98,11 @@ impl<'a> Sugarloaf<'a> {
             ctx,
             rect_brush,
             rects: vec![],
-            text_brush,
+            // text_brush,
             cache,
-            atlas,
+            // atlas,
             layout,
-            editor,
+            // editor,
             font_system,
             spans: vec![],
         };
@@ -354,9 +354,9 @@ impl<'a> Sugarloaf<'a> {
         }
         self.spans.push(("\n".to_string(), attr));
         let spans: Vec<(&str, text::Attrs<'a>)> = self.spans.iter().map(|v| (v.0.as_str(), v.1)).collect();
-        self.editor
-            .buffer_mut()
-            .set_rich_text(&mut self.font_system, spans, cosmic_text::Shaping::Advanced);
+        // self.editor
+        //     .buffer_mut()
+        //     .set_rich_text(&mut self.font_system, spans, cosmic_text::Shaping::Advanced);
     }
 
     #[inline]
@@ -438,30 +438,30 @@ impl<'a> Sugarloaf<'a> {
 
     #[inline]
     pub fn render(&mut self) {
-        self.editor
-            .buffer_mut()
-            .shape_until_scroll(&mut self.font_system);
-        self.text_brush
-            .prepare(
-                &self.ctx.device,
-                &self.ctx.queue,
-                &mut self.font_system,
-                &mut self.atlas,
-                text::Resolution {
-                    width: self.ctx.size.width,
-                    height: self.ctx.size.height,
-                },
-                [text::TextArea {
-                    buffer: &self.editor.buffer(),
-                    left: 10.0,
-                    top: 10.0,
-                    scale: self.ctx.scale,
-                    bounds: None,
-                    default_color: cosmic_text::Color::rgb(255, 255, 255),
-                }],
-                &mut self.cache,
-            )
-            .unwrap();
+        // self.editor
+        //     .buffer_mut()
+        //     .shape_until_scroll(&mut self.font_system);
+        // self.text_brush
+        //     .prepare(
+        //         &self.ctx.device,
+        //         &self.ctx.queue,
+        //         &mut self.font_system,
+        //         &mut self.atlas,
+        //         text::Resolution {
+        //             width: self.ctx.size.width,
+        //             height: self.ctx.size.height,
+        //         },
+        //         [text::TextArea {
+        //             buffer: &self.editor.buffer(),
+        //             left: 10.0,
+        //             top: 10.0,
+        //             scale: self.ctx.scale,
+        //             bounds: None,
+        //             default_color: cosmic_text::Color::rgb(255, 255, 255),
+        //         }],
+        //         &mut self.cache,
+        //     )
+        //     .unwrap();
 
         match self.ctx.surface.get_current_texture() {
             Ok(frame) => {
@@ -497,20 +497,21 @@ impl<'a> Sugarloaf<'a> {
                         .render_with_encoder(0, view, &mut encoder, None);
                 }
 
-                // self.rect_brush.render(
-                //     &mut encoder,
-                //     view,
-                //     (self.ctx.size.width, self.ctx.size.height),
-                //     &self.rects,
-                //     &mut self.ctx,
-                // );
+                self.rect_brush.render(
+                    &mut encoder,
+                    view,
+                    (self.ctx.size.width, self.ctx.size.height),
+                    &self.rects,
+                    &mut self.ctx,
+                );
 
-                // self.rects = vec![];
-                self.text_brush.render(&self.atlas, &mut encoder, view);
+                self.rects = vec![];
+                // self.text_brush.render(&self.atlas, &mut encoder, view);
                 self.spans = vec![];
+                
                 self.ctx.queue.submit(Some(encoder.finish()));
                 frame.present();
-                self.atlas.trim();
+                // self.atlas.trim();
             }
             Err(error) => {
                 if error == wgpu::SurfaceError::OutOfMemory {

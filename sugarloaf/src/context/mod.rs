@@ -137,8 +137,8 @@ impl Context {
                 width: size.width,
                 height: size.height,
                 view_formats: vec![],
-                alpha_mode: wgpu::CompositeAlphaMode::Auto,
-                present_mode: wgpu::PresentMode::AutoVsync,
+                alpha_mode: wgpu::CompositeAlphaMode::Opaque,
+                present_mode: wgpu::PresentMode::Fifo,
             },
         );
 
@@ -165,8 +165,8 @@ impl Context {
                 width,
                 height,
                 view_formats: vec![],
-                alpha_mode: wgpu::CompositeAlphaMode::Auto,
-                present_mode: wgpu::PresentMode::AutoVsync,
+                alpha_mode: wgpu::CompositeAlphaMode::Opaque,
+                present_mode: wgpu::PresentMode::Fifo,
             },
         );
     }

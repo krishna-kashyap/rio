@@ -32,13 +32,15 @@ targets = [
 wgpu = { workspace = true }
 bytemuck = { workspace = true }
 winit = { workspace = true }
-glyph_brush = "0.7.7"
 log = { workspace = true }
 serde = { workspace = true }
 twox-hash = { version = "1.6.3", default-features = false }
 image = "0.24.7"
 unicode-width = "0.1.5"
 guillotiere = "0.6.2"
+etagere = "0.2.8"
+cosmic-text = { git = "https://github.com/pop-os/cosmic-text", branch = "main" }
+lru = "0.11"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 memmap2 = { version = "0.7.1" }

@@ -60,14 +60,15 @@ impl RepeatedSugar {
     }
 
     #[inline]
-    pub fn set(&mut self, sugar: &Sugar, pos_x: f32, pos_y: f32) {
+    // pub fn set(&mut self, sugar: &Sugar, pos_x: f32, pos_y: f32) {
+    pub fn set(&mut self, sugar: &Sugar) {
         self.content = Some(sugar.content);
         self.content_str += &sugar.content.to_string();
         self.foreground_color = sugar.foreground_color;
         self.background_color = sugar.background_color;
         if self.quantity == 0 {
-            self.pos_x = pos_x;
-            self.pos_y = pos_y;
+            // self.pos_x = pos_x;
+            // self.pos_y = pos_y;
             self.content_str += &sugar.content.to_string();
         }
         self.quantity += 1;

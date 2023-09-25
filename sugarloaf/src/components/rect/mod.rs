@@ -265,6 +265,10 @@ impl Renderable for RectBrush {
         instances: &[Rect],
         ctx: &mut Context,
     ) {
+        if instances.is_empty() {
+            return;
+        }
+
         let transform: [f32; 16] = orthographic_projection(dimensions.0, dimensions.1);
         // device.push_error_scope(wgpu::ErrorFilter::Validation);
         let scale = ctx.scale;

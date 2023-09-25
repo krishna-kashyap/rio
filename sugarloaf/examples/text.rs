@@ -314,6 +314,7 @@ async fn main() {
                 _ => (),
             },
             Event::RedrawRequested { .. } => {
+                // Target: 108.335791ms
                 let start = std::time::Instant::now();
                 sugarloaf.stack(sugar);
                 sugarloaf.stack(loaf);

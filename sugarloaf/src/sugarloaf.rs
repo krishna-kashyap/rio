@@ -221,6 +221,7 @@ impl<'a> Sugarloaf<'a> {
 
     #[inline]
     pub fn stack(&mut self, stack: SugarStack) {
+        let start = std::time::Instant::now();
         // let mut x = 0.;
         let attr = cosmic_text::Attrs {
             color_opt: None,
@@ -371,6 +372,9 @@ impl<'a> Sugarloaf<'a> {
             spans,
             cosmic_text::Shaping::Advanced,
         );
+
+        let duration = start.elapsed();
+        println!("Time elapsed in stack() is: {:?}", duration);
     }
 
     #[inline]

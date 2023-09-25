@@ -1,12 +1,13 @@
-use crate::context::Context;
-use crate::components::text::{FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus, Params, PrepareError,
+use crate::components::text::{
+    FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus, Params, PrepareError,
     Resolution, SwashCache, SwashContent, TextArea, TextAtlas,
 };
+use crate::context::Context;
 use std::{iter, mem::size_of, slice, sync::Arc};
 use wgpu::{
     Buffer, BufferDescriptor, BufferUsages, Device, Extent3d, ImageCopyTexture,
-    ImageDataLayout, IndexFormat, Origin3d, Queue, RenderPipeline,
-    TextureAspect, COPY_BUFFER_ALIGNMENT,
+    ImageDataLayout, IndexFormat, Origin3d, Queue, RenderPipeline, TextureAspect,
+    COPY_BUFFER_ALIGNMENT,
 };
 
 /// A text renderer that uses cached glyphs to render text into an existing render pass.
@@ -45,7 +46,11 @@ impl TextRenderer {
             mapped_at_creation: false,
         });
 
-        let pipeline = atlas.get_or_create_pipeline(&device, wgpu::MultisampleState::default(), None);
+        let pipeline = atlas.get_or_create_pipeline(
+            device,
+            wgpu::MultisampleState::default(),
+            None,
+        );
 
         Self {
             vertex_buffer,
@@ -111,7 +116,10 @@ impl TextRenderer {
                         atlas.color_atlas.promote(physical_glyph.cache_key);
                     } else {
                         let Some(image) = cache
-                            .get_image_uncached(font_system, physical_glyph.cache_key) else { continue };
+                            .get_image_uncached(font_system, physical_glyph.cache_key)
+                        else {
+                            continue;
+                        };
 
                         let content_type = match image.content {
                             SwashContent::Color => ContentType::Color,
@@ -165,7 +173,9 @@ impl TextRenderer {
                                 &image.data,
                                 ImageDataLayout {
                                     offset: 0,
-                                    bytes_per_row: Some(width as u32 * inner.num_channels() as u32),
+                                    bytes_per_row: Some(
+                                        width as u32 * inner.num_channels() as u32,
+                                    ),
                                     rows_per_image: None,
                                 },
                                 Extent3d {
@@ -205,11 +215,15 @@ impl TextRenderer {
                     let details = atlas.glyph(&physical_glyph.cache_key).unwrap();
 
                     let mut x = physical_glyph.x + details.left as i32;
-                    let mut y = (run.line_y * text_area.scale).round() as i32 + physical_glyph.y
+                    let mut y = (run.line_y * text_area.scale).round() as i32
+                        + physical_glyph.y
                         - details.top as i32;
 
-                    let (mut atlas_x, mut atlas_y, content_type) = match details.gpu_cache {
-                        GpuCacheStatus::InAtlas { x, y, content_type } => (x, y, content_type),
+                    let (mut atlas_x, mut atlas_y, content_type) = match details.gpu_cache
+                    {
+                        GpuCacheStatus::InAtlas { x, y, content_type } => {
+                            (x, y, content_type)
+                        }
                         GpuCacheStatus::SkipRasterization => continue,
                     };
 
@@ -217,53 +231,53 @@ impl TextRenderer {
                     let mut height = details.height as i32;
 
                     if let Some(bounds) = text_area.bounds {
-
                         let bounds_min_x = bounds.left.max(0);
                         let bounds_min_y = bounds.top.max(0);
-                        let bounds_max_x = bounds.right.min(screen_resolution.width as i32);
-                        let bounds_max_y = bounds.bottom.min(screen_resolution.height as i32);
+                        let bounds_max_x =
+                            bounds.right.min(screen_resolution.width as i32);
+                        let bounds_max_y =
+                            bounds.bottom.min(screen_resolution.height as i32);
 
+                        // Starts beyond right edge or ends beyond left edge
+                        let max_x = x + width;
+                        if x > bounds_max_x || max_x < bounds_min_x {
+                            continue;
+                        }
 
-                    // Starts beyond right edge or ends beyond left edge
-                    let max_x = x + width;
-                    if x > bounds_max_x || max_x < bounds_min_x {
-                        continue;
+                        // Starts beyond bottom edge or ends beyond top edge
+                        let max_y = y + height;
+                        if y > bounds_max_y || max_y < bounds_min_y {
+                            continue;
+                        }
+
+                        // Clip left ege
+                        if x < bounds_min_x {
+                            let right_shift = bounds_min_x - x;
+
+                            x = bounds_min_x;
+                            width = max_x - bounds_min_x;
+                            atlas_x += right_shift as u16;
+                        }
+
+                        // Clip right edge
+                        if x + width > bounds_max_x {
+                            width = bounds_max_x - x;
+                        }
+
+                        // Clip top edge
+                        if y < bounds_min_y {
+                            let bottom_shift = bounds_min_y - y;
+
+                            y = bounds_min_y;
+                            height = max_y - bounds_min_y;
+                            atlas_y += bottom_shift as u16;
+                        }
+
+                        // Clip bottom edge
+                        if y + height > bounds_max_y {
+                            height = bounds_max_y - y;
+                        }
                     }
-
-                    // Starts beyond bottom edge or ends beyond top edge
-                    let max_y = y + height;
-                    if y > bounds_max_y || max_y < bounds_min_y {
-                        continue;
-                    }
-
-                    // Clip left ege
-                    if x < bounds_min_x {
-                        let right_shift = bounds_min_x - x;
-
-                        x = bounds_min_x;
-                        width = max_x - bounds_min_x;
-                        atlas_x += right_shift as u16;
-                    }
-
-                    // Clip right edge
-                    if x + width > bounds_max_x {
-                        width = bounds_max_x - x;
-                    }
-
-                    // Clip top edge
-                    if y < bounds_min_y {
-                        let bottom_shift = bounds_min_y - y;
-
-                        y = bounds_min_y;
-                        height = max_y - bounds_min_y;
-                        atlas_y += bottom_shift as u16;
-                    }
-
-                    // Clip bottom edge
-                    if y + height > bounds_max_y {
-                        height = bounds_max_y - y;
-                    }
-                }
 
                     let color = match glyph.color_opt {
                         Some(some) => some,

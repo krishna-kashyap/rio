@@ -528,7 +528,12 @@ impl LayerBrush {
             render_pass.set_pipeline(&self.pipeline);
 
             if let Some(bounds) = rect_bounds {
-                render_pass.set_scissor_rect(bounds.x, bounds.y, bounds.width, bounds.height);
+                render_pass.set_scissor_rect(
+                    bounds.x,
+                    bounds.y,
+                    bounds.width,
+                    bounds.height,
+                );
             }
 
             render_pass.set_bind_group(1, &self.texture, &[]);

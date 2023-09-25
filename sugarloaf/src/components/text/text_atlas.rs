@@ -1,20 +1,23 @@
-use crate::context::Context;
-use crate::components::text::{ContentType, CacheKey, FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus,
+use crate::components::text::{
+    CacheKey, ContentType, FontSystem, GlyphDetails, GlyphToRender, GpuCacheStatus,
     Params, Resolution, SwashCache,
 };
+use crate::context::Context;
 use etagere::{size2, Allocation, BucketedAtlasAllocator};
 use lru::LruCache;
 use std::{borrow::Cow, collections::HashSet, mem::size_of, num::NonZeroU64, sync::Arc};
 use wgpu::{
-    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry,
-    BindingResource, BindingType, BlendState, Buffer, BufferBindingType, BufferDescriptor,
-    BufferUsages, ColorTargetState, ColorWrites, DepthStencilState, Device, Extent3d, FilterMode,
-    FragmentState, ImageCopyTexture, ImageDataLayout, MultisampleState, Origin3d, PipelineLayout,
-    PipelineLayoutDescriptor, PrimitiveState, Queue, RenderPipeline, RenderPipelineDescriptor,
-    Sampler, SamplerBindingType, SamplerDescriptor, ShaderModule, ShaderModuleDescriptor,
-    ShaderSource, ShaderStages, Texture, TextureAspect, TextureDescriptor, TextureDimension,
-    TextureFormat, TextureSampleType, TextureUsages, TextureView, TextureViewDescriptor,
-    TextureViewDimension, VertexFormat, VertexState,
+    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
+    BindGroupLayoutEntry, BindingResource, BindingType, BlendState, Buffer,
+    BufferBindingType, BufferDescriptor, BufferUsages, ColorTargetState, ColorWrites,
+    DepthStencilState, Device, Extent3d, FilterMode, FragmentState, ImageCopyTexture,
+    ImageDataLayout, MultisampleState, Origin3d, PipelineLayout,
+    PipelineLayoutDescriptor, PrimitiveState, Queue, RenderPipeline,
+    RenderPipelineDescriptor, Sampler, SamplerBindingType, SamplerDescriptor,
+    ShaderModule, ShaderModuleDescriptor, ShaderSource, ShaderStages, Texture,
+    TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureSampleType,
+    TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
+    VertexFormat, VertexState,
 };
 
 #[allow(dead_code)]
@@ -71,7 +74,11 @@ impl InnerAtlas {
         }
     }
 
-    pub(crate) fn try_allocate(&mut self, width: usize, height: usize) -> Option<Allocation> {
+    pub(crate) fn try_allocate(
+        &mut self,
+        width: usize,
+        height: usize,
+    ) -> Option<Allocation> {
         let size = size2(width as i32, height as i32);
 
         loop {
@@ -132,7 +139,8 @@ impl InnerAtlas {
         }
 
         // TODO: Better resizing logic (?)
-        let new_size = (self.size + Self::INITIAL_SIZE).min(self.max_texture_dimension_2d);
+        let new_size =
+            (self.size + Self::INITIAL_SIZE).min(self.max_texture_dimension_2d);
 
         self.packer.grow(size2(new_size as i32, new_size as i32));
 
@@ -337,47 +345,48 @@ impl TextAtlas {
             ],
         }];
 
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: ShaderStages::VERTEX,
-                    ty: BindingType::Buffer {
-                        ty: BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: NonZeroU64::new(size_of::<Params>() as u64),
+        let bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: ShaderStages::VERTEX,
+                        ty: BindingType::Buffer {
+                            ty: BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: NonZeroU64::new(size_of::<Params>() as u64),
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
-                    ty: BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: TextureViewDimension::D2,
-                        sample_type: TextureSampleType::Float { filterable: true },
+                    BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
+                        ty: BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: TextureViewDimension::D2,
+                            sample_type: TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                BindGroupLayoutEntry {
-                    binding: 2,
-                    visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
-                    ty: BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: TextureViewDimension::D2,
-                        sample_type: TextureSampleType::Float { filterable: true },
+                    BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
+                        ty: BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: TextureViewDimension::D2,
+                            sample_type: TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                BindGroupLayoutEntry {
-                    binding: 3,
-                    visibility: ShaderStages::FRAGMENT,
-                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-            label: Some("text bind group layout"),
-        });
+                    BindGroupLayoutEntry {
+                        binding: 3,
+                        visibility: ShaderStages::FRAGMENT,
+                        ty: BindingType::Sampler(SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+                label: Some("text bind group layout"),
+            });
 
         let params = Params {
             screen_resolution: Resolution {
@@ -466,7 +475,9 @@ impl TextAtlas {
     ) -> bool {
         let did_grow = match content_type {
             ContentType::Mask => self.mask_atlas.grow(device, queue, font_system, cache),
-            ContentType::Color => self.color_atlas.grow(device, queue, font_system, cache),
+            ContentType::Color => {
+                self.color_atlas.grow(device, queue, font_system, cache)
+            }
         };
 
         if did_grow {
@@ -483,7 +494,10 @@ impl TextAtlas {
             .or_else(|| self.color_atlas.glyph_cache.peek(glyph))
     }
 
-    pub(crate) fn inner_for_content_mut(&mut self, content_type: ContentType) -> &mut InnerAtlas {
+    pub(crate) fn inner_for_content_mut(
+        &mut self,
+        content_type: ContentType,
+    ) -> &mut InnerAtlas {
         match content_type {
             ContentType::Color => &mut self.color_atlas,
             ContentType::Mask => &mut self.mask_atlas,
@@ -501,31 +515,35 @@ impl TextAtlas {
             .find(|(ms, ds, _)| ms == &multisample && ds == &depth_stencil)
             .map(|(_, _, p)| Arc::clone(p))
             .unwrap_or_else(|| {
-                let pipeline = Arc::new(device.create_render_pipeline(&RenderPipelineDescriptor {
-                    label: Some("text pipeline"),
-                    layout: Some(&self.pipeline_layout),
-                    vertex: VertexState {
-                        module: &self.shader,
-                        entry_point: "vs_main",
-                        buffers: &self.vertex_buffers,
-                    },
-                    fragment: Some(FragmentState {
-                        module: &self.shader,
-                        entry_point: "fs_main",
-                        targets: &[Some(ColorTargetState {
-                            format: self.format,
-                            blend: Some(BlendState::ALPHA_BLENDING),
-                            write_mask: ColorWrites::default(),
-                        })],
-                    }),
-                    primitive: PrimitiveState::default(),
-                    depth_stencil: depth_stencil.clone(),
-                    multisample,
-                    multiview: None,
-                }));
+                let pipeline =
+                    Arc::new(device.create_render_pipeline(&RenderPipelineDescriptor {
+                        label: Some("text pipeline"),
+                        layout: Some(&self.pipeline_layout),
+                        vertex: VertexState {
+                            module: &self.shader,
+                            entry_point: "vs_main",
+                            buffers: &self.vertex_buffers,
+                        },
+                        fragment: Some(FragmentState {
+                            module: &self.shader,
+                            entry_point: "fs_main",
+                            targets: &[Some(ColorTargetState {
+                                format: self.format,
+                                blend: Some(BlendState::ALPHA_BLENDING),
+                                write_mask: ColorWrites::default(),
+                            })],
+                        }),
+                        primitive: PrimitiveState::default(),
+                        depth_stencil: depth_stencil.clone(),
+                        multisample,
+                        multiview: None,
+                    }));
 
-                self.cached_pipelines
-                    .push((multisample, depth_stencil, pipeline.clone()));
+                self.cached_pipelines.push((
+                    multisample,
+                    depth_stencil,
+                    pipeline.clone(),
+                ));
                 pipeline
             })
     }
@@ -540,7 +558,9 @@ impl TextAtlas {
                 },
                 BindGroupEntry {
                     binding: 1,
-                    resource: BindingResource::TextureView(&self.color_atlas.texture_view),
+                    resource: BindingResource::TextureView(
+                        &self.color_atlas.texture_view,
+                    ),
                 },
                 BindGroupEntry {
                     binding: 2,

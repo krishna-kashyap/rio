@@ -235,13 +235,12 @@ async fn main() {
                     sugarloaf
                         .rescale(scale_factor_f32)
                         .resize(new_inner_size.width, new_inner_size.height);
-                        // .calculate_bounds();
+                    // .calculate_bounds();
                     window.request_redraw();
                 }
                 winit::event::WindowEvent::Resized(new_size) => {
-                    sugarloaf
-                        .resize(new_size.width, new_size.height);
-                        // .calculate_bounds();
+                    sugarloaf.resize(new_size.width, new_size.height);
+                    // .calculate_bounds();
                     window.request_redraw();
                 }
                 _ => (),

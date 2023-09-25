@@ -18,4 +18,3 @@ use crate::font::constants::*;
 
 pub type SugarloafFont = fonts::SugarloafFont;
 pub type SugarloafFonts = fonts::SugarloafFonts;
-
